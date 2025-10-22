@@ -15,6 +15,7 @@ export default function WorkTypes() {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('cards');
+  const [submitting, setSubmitting] = useState(false);
 
   // Filter work types based on search
   const filteredWorkTypes = workTypes.filter(workType =>
@@ -48,13 +49,15 @@ export default function WorkTypes() {
   // Create work type
   const handleCreate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     api.post('/worktypes', formData)
       .then(() => {
         setShowForm(false);
         setFormData({ name: '', description: '' });
         fetchWorkTypes();
       })
-      .catch((err) => setError(err.response?.data?.message || err.message));
+      .catch((err) => setError(err.response?.data?.message || err.message))
+      .finally(() => setSubmitting(false));
   };
 
   // Edit work type
@@ -68,6 +71,7 @@ export default function WorkTypes() {
   // Update work type
   const handleUpdate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     api.put(`/worktypes/${currentWorkType._id}`, formData)
       .then(() => {
         setShowForm(false);
@@ -75,7 +79,8 @@ export default function WorkTypes() {
         setFormData({ name: '', description: '' });
         fetchWorkTypes();
       })
-      .catch((err) => setError(err.response?.data?.message || err.message));
+      .catch((err) => setError(err.response?.data?.message || err.message))
+      .finally(() => setSubmitting(false));
   };
 
   // Delete work type
@@ -388,13 +393,24 @@ export default function WorkTypes() {
                 <div className="flex gap-3 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    disabled={submitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    {formType === 'create' ? 'Create' : 'Update'}
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {formType === 'create' ? 'Creating...' : 'Updating...'}
+                      </>
+                    ) : (
+                      <>
+                        {formType === 'create' ? 'Create' : 'Update'}
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                    disabled={submitting}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => setShowForm(false)}
                   >
                     Cancel

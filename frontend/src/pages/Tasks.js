@@ -28,7 +28,8 @@ function Tasks() {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [statusForm, setStatusForm] = useState({ status: '', remarks: '', actualTime: '' });
+  const [statusForm, setStatusForm] = useState({ status: '', remarks: '', actualTime: '', assignedTo: '' });
+  const [submitting, setSubmitting] = useState(false);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -135,6 +136,7 @@ function Tasks() {
   // Create task
   const handleCreate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     const materialsArr = formData.materials.split(',').map(m => m.trim()).filter(Boolean);
     const tagsArr = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
     const fd = new FormData();
@@ -158,7 +160,8 @@ function Tasks() {
         setImagePreviews([]);
         fetchTasks();
       })
-      .catch((err) => setError(err.response?.data?.message || err.message));
+      .catch((err) => setError(err.response?.data?.message || err.message))
+      .finally(() => setSubmitting(false));
   };
 
   // Edit task
@@ -183,6 +186,7 @@ function Tasks() {
   // Update task
   const handleUpdate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     const materialsArr = formData.materials.split(',').map(m => m.trim()).filter(Boolean);
     const tagsArr = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
     const fd = new FormData();
@@ -206,7 +210,8 @@ function Tasks() {
         setImagePreviews([]);
         fetchTasks();
       })
-      .catch((err) => setError(err.response?.data?.message || err.message));
+      .catch((err) => setError(err.response?.data?.message || err.message))
+      .finally(() => setSubmitting(false));
   };
 
   // Delete task
@@ -242,7 +247,11 @@ function Tasks() {
   // Show status update modal
   const handleShowStatusModal = (task) => {
     setSelectedTask(task);
-    setStatusForm({ status: task.status || '', remarks: '', actualTime: task.actualTime || '' });
+    setStatusForm({ 
+      status: task.status || '', 
+      remarks: '', 
+      actualTime: task.actualTime || '', 
+      assignedTo: task.assignedTo || '' });
     setShowStatusModal(true);
   };
 
@@ -253,15 +262,22 @@ function Tasks() {
       setError('Please choose a status');
       return;
     }
-    api.post(`/tasks/${selectedTask._id}/status`, {
+    setSubmitting(true);
+    const payload = {
       status: statusForm.status,
       remarks: statusForm.remarks || undefined,
       actualTime: statusForm.actualTime || undefined,
-    }).then(() => {
+    };
+    if (statusForm.status === 'In Progress') {
+      payload.assignedTo = statusForm.assignedTo || undefined;
+    }
+    api.post(`/tasks/${selectedTask._id}/status`, payload).then(() => {
       setShowStatusModal(false);
       setSelectedTask(null);
+      setStatusForm({ status: '', remarks: '', actualTime: '', assignedTo: '' });
       fetchTasks();
-    }).catch(err => setError(err.response?.data?.message || err.message));
+    }).catch(err => setError(err.response?.data?.message || err.message))
+    .finally(() => setSubmitting(false));
   };
 
   if (loading) return (
@@ -283,7 +299,7 @@ function Tasks() {
   );
 
   return (
-    <div className="max-w-8xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 mb-6 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -514,6 +530,14 @@ function Tasks() {
                             <span className="text-gray-600">{task.estimatedTime}</span>
                           </div>
                         )}
+                        {task.assignedTo && (
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span className="text-gray-600">{task.assignedTo}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -533,12 +557,12 @@ function Tasks() {
                             </button>
                             <button
                               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center gap-1"
-                              onClick={() => handleReject(task._id)}
+                              onClick={() => handleDelete(task._id)}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              Reject
+                              Delete
                             </button>
                           </>
                         ) : (
@@ -654,11 +678,11 @@ function Tasks() {
                                   </button>
                                   <button
                                     className="text-red-600 hover:text-red-800 p-1"
-                                    onClick={() => handleReject(task._id)}
-                                    title="Reject"
+                                    onClick={() => handleDelete(task._id)}
+                                    title="Delete"
                                   >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                   </button>
                                 </>
@@ -826,13 +850,24 @@ function Tasks() {
               <div className="flex justify-end space-x-2 mt-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                  {formType === 'create' ? 'Create' : 'Update'}
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      {formType === 'create' ? 'Creating...' : 'Updating...'}
+                    </>
+                  ) : (
+                    <>
+                      {formType === 'create' ? 'Create' : 'Update'}
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setShowForm(false)}
                 >
                   Cancel
@@ -984,6 +1019,12 @@ function Tasks() {
                         <span className="text-sm font-medium text-gray-600">Actual Time</span>
                         <p className="text-gray-800">{selectedTask.actualTime || 'Not specified'}</p>
                       </div>
+                      {selectedTask.assignedTo && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Assigned To</span>
+                          <p className="text-gray-800">{selectedTask.assignedTo}</p>
+                        </div>
+                      )}
                       <div>
                         <span className="text-sm font-medium text-gray-600">Tags</span>
                         <div className="flex flex-wrap gap-1 mt-1">
@@ -1022,14 +1063,14 @@ function Tasks() {
                           <button
                             className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center justify-center"
                             onClick={() => {
-                              handleReject(selectedTask._id);
+                              handleDelete(selectedTask._id);
                               setShowDetails(false);
                             }}
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            Reject
+                            Delete
                           </button>
                         </>
                       ) : (
@@ -1135,17 +1176,41 @@ function Tasks() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+
+                {statusForm.status === 'In Progress' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
+                    <input
+                      type="text"
+                      value={statusForm.assignedTo}
+                      onChange={(e) => setStatusForm({ ...statusForm, assignedTo: e.target.value })}
+                      placeholder="e.g. John Doe, Maintenance Team"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="flex gap-3 mt-6">
                 <button
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   onClick={handleStatusUpdate}
                 >
-                  Update Status
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      Update Status
+                    </>
+                  )}
                 </button>
                 <button
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setShowStatusModal(false)}
                 >
                   Cancel
@@ -1160,4 +1225,3 @@ function Tasks() {
 }
 
 export default Tasks;
-
