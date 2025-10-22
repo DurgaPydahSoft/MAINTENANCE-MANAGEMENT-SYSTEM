@@ -1,4 +1,4 @@
-const { S3Client, HeadBucketCommand } = require('@aws-sdk/client-s3');
+const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 
@@ -21,19 +21,23 @@ try {
   console.error('Please check your .env file for AWS credentials');
 }
 
-// Create S3 v3 client compatible with multer-s3 v3 internals (expects client.send)
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-  }
+// Configure AWS
+aws.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
 });
 
-// Test S3 connection using HeadBucketCommand
+// Create S3 instance
+const s3 = new aws.S3({
+  apiVersion: '2006-03-01',
+  signatureVersion: 'v4'
+});
+
+// Test S3 connection
 const testS3Connection = async () => {
   try {
-    await s3.send(new HeadBucketCommand({ Bucket: process.env.AWS_BUCKET_NAME }));
+    await s3.headBucket({ Bucket: process.env.AWS_BUCKET_NAME }).promise();
     console.log('\u2705 S3 connection successful');
   } catch (error) {
     console.error('\u274c S3 connection failed:', error.message);
@@ -65,7 +69,9 @@ const upload = multer({
       const filename = `tasks/${timestamp}-${randomString}.${extension}`;
       cb(null, filename);
     },
-    contentType: multerS3.AUTO_CONTENT_TYPE
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    contentDisposition: 'inline', // Ensure files are displayed in browser
+    serverSideEncryption: undefined, // Let S3 handle encryption defaults
   }),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB file size limit
@@ -123,4 +129,4 @@ const handleUploadError = (err, req, res, next) => {
   next(err);
 };
 
-module.exports = { upload, handleUploadError };
+module.exports = { upload, handleUploadError, s3 };

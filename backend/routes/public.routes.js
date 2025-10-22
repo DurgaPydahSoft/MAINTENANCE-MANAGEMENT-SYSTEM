@@ -2,17 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Task = require('../models/task.model');
 const WorkType = require('../models/worktype.model');
-const aws = require('aws-sdk');
+const { s3 } = require('../config/s3.config.js');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 
-// Create a separate S3 uploader for public submissions with higher limits (no strict cap)
-aws.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION
-});
-const s3 = new aws.S3();
+// Configure multer for public uploads with higher limits
 const uploadPublic = multer({
   storage: multerS3({
     s3,
