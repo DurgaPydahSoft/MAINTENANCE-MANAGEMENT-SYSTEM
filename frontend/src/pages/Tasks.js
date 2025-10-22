@@ -28,7 +28,7 @@ function Tasks() {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [statusForm, setStatusForm] = useState({ status: '', remarks: '', actualTime: '' });
+  const [statusForm, setStatusForm] = useState({ status: '', remarks: '', actualTime: '', assignedTo: '' });
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -242,7 +242,11 @@ function Tasks() {
   // Show status update modal
   const handleShowStatusModal = (task) => {
     setSelectedTask(task);
-    setStatusForm({ status: task.status || '', remarks: '', actualTime: task.actualTime || '' });
+    setStatusForm({ 
+      status: task.status || '', 
+      remarks: '', 
+      actualTime: task.actualTime || '', 
+      assignedTo: task.assignedTo || '' });
     setShowStatusModal(true);
   };
 
@@ -253,13 +257,18 @@ function Tasks() {
       setError('Please choose a status');
       return;
     }
-    api.post(`/tasks/${selectedTask._id}/status`, {
+    const payload = {
       status: statusForm.status,
       remarks: statusForm.remarks || undefined,
       actualTime: statusForm.actualTime || undefined,
-    }).then(() => {
+    };
+    if (statusForm.status === 'In Progress') {
+      payload.assignedTo = statusForm.assignedTo || undefined;
+    }
+    api.post(`/tasks/${selectedTask._id}/status`, payload).then(() => {
       setShowStatusModal(false);
       setSelectedTask(null);
+      setStatusForm({ status: '', remarks: '', actualTime: '', assignedTo: '' });
       fetchTasks();
     }).catch(err => setError(err.response?.data?.message || err.message));
   };
@@ -283,7 +292,7 @@ function Tasks() {
   );
 
   return (
-    <div className="max-w-8xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 mb-6 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -512,6 +521,14 @@ function Tasks() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span className="text-gray-600">{task.estimatedTime}</span>
+                          </div>
+                        )}
+                        {task.assignedTo && (
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span className="text-gray-600">{task.assignedTo}</span>
                           </div>
                         )}
                       </div>
@@ -984,6 +1001,12 @@ function Tasks() {
                         <span className="text-sm font-medium text-gray-600">Actual Time</span>
                         <p className="text-gray-800">{selectedTask.actualTime || 'Not specified'}</p>
                       </div>
+                      {selectedTask.assignedTo && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Assigned To</span>
+                          <p className="text-gray-800">{selectedTask.assignedTo}</p>
+                        </div>
+                      )}
                       <div>
                         <span className="text-sm font-medium text-gray-600">Tags</span>
                         <div className="flex flex-wrap gap-1 mt-1">
@@ -1135,6 +1158,19 @@ function Tasks() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+
+                {statusForm.status === 'In Progress' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
+                    <input
+                      type="text"
+                      value={statusForm.assignedTo}
+                      onChange={(e) => setStatusForm({ ...statusForm, assignedTo: e.target.value })}
+                      placeholder="e.g. John Doe, Maintenance Team"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="flex gap-3 mt-6">
@@ -1160,4 +1196,3 @@ function Tasks() {
 }
 
 export default Tasks;
-

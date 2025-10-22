@@ -149,11 +149,12 @@ exports.assignTask = async (req, res) => {
 // Update task status
 exports.updateStatus = async (req, res) => {
   try {
-    const { status, remarks, actualTime } = req.body;
+    const { status, remarks, actualTime, assignedTo } = req.body;
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
     if (status) task.status = status;
     if (actualTime) task.actualTime = actualTime;
+    if (assignedTo !== undefined && assignedTo !== null && assignedTo !== '') task.assignedTo = assignedTo;
     task.history.push({ status, changedBy: req.user._id, remarks });
     await task.save();
     res.json(task);

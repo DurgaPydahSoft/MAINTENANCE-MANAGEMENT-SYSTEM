@@ -15,7 +15,7 @@ const taskSchema = new mongoose.Schema({
   workType: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkType', required: true },
   area: String,
   status: { type: String, enum: statusEnum, default: 'Pending' },
-  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  assignedTo: { type: String }, // Changed from ObjectId to String for text input
   materials: [String],
   manpower: String,
   estimatedTime: String,
