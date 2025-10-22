@@ -22,6 +22,10 @@ const defaultWorkTypes = [
   {
     name: 'Carpenter',
     description: 'Carpentry work including woodwork, furniture repair, door/window installation, and structural repairs'
+  },
+  {
+    name: 'Other',
+    description: 'Any other maintenance work that does not fit into the standard categories'
   }
 ];
 
