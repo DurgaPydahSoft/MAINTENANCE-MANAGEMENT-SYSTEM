@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -52,9 +53,18 @@ function AppShell() {
         {/* Header */}
         <div className="p-6 border-b border-gray-700 flex-shrink-0">
           <Link to="/" className="flex items-center space-x-3 group">
-            <div>
-              <h1 className="text-3xl font-bold text-white">PYDAH</h1>
-              <p className="text-xs text-gray-400">Maintenance Portal</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-3xl font-bold text-white">PYDAH</h1>
+                <p className="text-xs text-gray-400">Maintenance Portal</p>
+              </div>
+              <div className="w-32 h-20">
+                <DotLottieReact
+                  src="https://lottie.host/e6ff0b4d-b519-4509-a423-1ff4a4c520d3/1g7wwRt38G.lottie"
+                  loop
+                  autoplay
+                />
+              </div>
             </div>
           </Link>
         </div>

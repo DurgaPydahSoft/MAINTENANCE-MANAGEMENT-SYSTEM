@@ -123,10 +123,38 @@ exports.updateTask = async (req, res) => {
 // Delete a task
 exports.deleteTask = async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    // First find the task to get the image URLs
+    const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-    res.json({ message: 'Task deleted' });
+
+    // If task has images, delete them from S3
+    if (task.images && task.images.length > 0) {
+      const { s3 } = require('../config/s3.config');
+      
+      // Delete each image from S3
+      const deletePromises = task.images.map(imageUrl => {
+        // Extract the key from the URL (everything after tasks/ in the URL)
+        const key = imageUrl.split('.com/').pop();
+        return s3.deleteObject({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key
+        }).promise();
+      });
+
+      try {
+        await Promise.all(deletePromises);
+        console.log(`Successfully deleted ${task.images.length} images from S3`);
+      } catch (s3Error) {
+        console.error('Error deleting images from S3:', s3Error);
+        // Continue with task deletion even if image deletion fails
+      }
+    }
+
+    // Now delete the task
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Task and associated images deleted successfully' });
   } catch (error) {
+    console.error('Error in deleteTask:', error);
     res.status(500).json({ message: error.message });
   }
 };
