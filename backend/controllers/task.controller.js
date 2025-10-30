@@ -5,7 +5,7 @@ const WorkType = require('../models/worktype.model');
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
-    let { title, description, workType, area, materials, manpower, estimatedTime, tags } = req.body;
+    let { title, description, workType, area, materials, manpower, estimatedTime, tags, submittedByName, workNature } = req.body;
     // Handle arrays possibly sent as JSON strings via multipart/form-data
     if (typeof materials === 'string') {
       try { materials = JSON.parse(materials); } catch (_) { materials = materials.split(',').map(m => m.trim()).filter(Boolean); }
@@ -14,7 +14,7 @@ exports.createTask = async (req, res) => {
       try { tags = JSON.parse(tags); } catch (_) { tags = tags.split(',').map(t => t.trim()).filter(Boolean); }
     }
     const images = req.files ? req.files.map(file => file.location) : [];
-    const createdBy = req.user._id;
+    const createdBy = req.user?._id; // For public, may be undefined
     const task = new Task({
       title,
       description,
@@ -26,6 +26,8 @@ exports.createTask = async (req, res) => {
       tags,
       images,
       createdBy,
+      submittedByName, // NEW FIELD
+      workNature,      // NEW FIELD
       history: [{ status: 'Pending', changedBy: createdBy }]
     });
     await task.save();
@@ -70,7 +72,7 @@ exports.getTask = async (req, res) => {
 // Update a task
 exports.updateTask = async (req, res) => {
   try {
-    let { title, description, workType, area, materials, manpower, estimatedTime, tags, existingImages } = req.body;
+    let { title, description, workType, area, materials, manpower, estimatedTime, tags, existingImages, submittedByName, workNature } = req.body;
     
     // Handle arrays possibly sent as JSON strings via multipart/form-data
     if (typeof materials === 'string') {
@@ -98,6 +100,8 @@ exports.updateTask = async (req, res) => {
       manpower,
       estimatedTime,
       tags,
+      submittedByName, // NEW FIELD
+      workNature,      // NEW FIELD
       images: allImages.length > 0 ? allImages : undefined
     };
     

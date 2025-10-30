@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api'; // Adjust the path if needed
 import { setPageTitle } from '../utils/pageTitle';
 
@@ -22,6 +23,8 @@ function Tasks() {
     estimatedTime: '',
     tags: '',
     workType: '',
+    submittedByName: '', // NEW FIELD
+  workNature: '', 
   });
   const [images, setImages] = useState([]); // File[]
   const [imagePreviews, setImagePreviews] = useState([]); // string[]
@@ -38,7 +41,7 @@ function Tasks() {
     search: '',
     dateRange: ''
   });
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
 
   const statusOptions = [
     "Awaiting Approval",
@@ -72,6 +75,8 @@ function Tasks() {
         case 'month':
           const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
           matchesDateRange = taskDate >= monthAgo;
+          break;
+        default:
           break;
       }
     }
@@ -120,6 +125,22 @@ function Tasks() {
     // eslint-disable-next-line
   }, []);
 
+  const location = useLocation();
+
+  // Apply URL query filters when landing on the page (e.g. /tasks?status=Pending)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status') || '';
+    const workType = params.get('workType') || '';
+    const search = params.get('search') || '';
+    const dateRange = params.get('dateRange') || '';
+    // Only update filters if any param exists to avoid clobbering local UI state
+    if (status || workType || search || dateRange) {
+      setFilters({ status, workType, search, dateRange });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   // Handle form input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -152,6 +173,9 @@ function Tasks() {
     // Append images
     images.forEach(file => fd.append('images', file));
 
+    fd.append('submittedByName', formData.submittedByName); // NEW FIELD
+  fd.append('workNature', formData.workNature);           // NEW FIELD
+
     api.post('/tasks', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then(() => {
         setShowForm(false);
@@ -177,6 +201,8 @@ function Tasks() {
       estimatedTime: task.estimatedTime || '',
       tags: Array.isArray(task.tags) ? task.tags.join(', ') : '',
       workType: task.workType?._id || task.workType || '',
+      submittedByName: task.submittedByName || '',
+    workNature: task.workNature || '',
     });
     setImages([]);
     setImagePreviews([]);
@@ -200,6 +226,9 @@ function Tasks() {
     fd.append('tags', JSON.stringify(tagsArr));
     // Only append images if user selected files; backend keeps old images otherwise
     images.forEach(file => fd.append('images', file));
+
+     fd.append('submittedByName', formData.submittedByName); // NEW FIELD
+  fd.append('workNature', formData.workNature);           // NEW FIELD
 
     api.put(`/tasks/${currentTask._id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then(() => {
@@ -226,14 +255,6 @@ function Tasks() {
   const handleApprove = (id) => {
     if (!window.confirm('Are you sure you want to approve this task?')) return;
     api.post(`/tasks/${id}/approve`)
-      .then(() => fetchTasks())
-      .catch((err) => setError(err.response?.data?.message || err.message));
-  };
-
-  // Reject task
-  const handleReject = (id) => {
-    if (!window.confirm('Are you sure you want to reject this task? This will delete it permanently.')) return;
-    api.post(`/tasks/${id}/reject`)
       .then(() => fetchTasks())
       .catch((err) => setError(err.response?.data?.message || err.message));
   };
@@ -847,6 +868,35 @@ function Tasks() {
                   ))}
                 </select>
               </div>
+              {/* Work Nature Dropdown */}
+  <div className="space-y-2">
+    <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+      <span>Work Nature</span>
+    </label>
+    <select
+      name="workNature"
+      value={formData.workNature}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+    >
+      <option value="">Select Work Nature</option>
+      <option value="Repair Work">Repair Work</option>
+      <option value="New Work">New Work</option>
+    </select>
+  </div>
+              <div className="space-y-2">
+    <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+      <span>Submitted By Name</span>
+    </label>
+    <input
+      type="text"
+      name="submittedByName"
+      value={formData.submittedByName}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+      placeholder="Name of submitter"
+    />
+  </div>
               <div className="flex justify-end space-x-2 mt-4">
                 <button
                   type="submit"
@@ -940,7 +990,7 @@ function Tasks() {
                           <div key={idx} className="relative group">
                             <img 
                               src={image} 
-                              alt={`Task image ${idx + 1}`} 
+                              alt={`task-img-${idx}`}
                               className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-105"
                               onClick={() => window.open(image, '_blank')}
                             />
@@ -990,8 +1040,16 @@ function Tasks() {
                     <h4 className="text-lg font-semibold text-gray-800 mb-4">Task Information</h4>
                     <div className="space-y-4">
                       <div>
+                        <span className="text-sm font-medium text-gray-600">Submitted By</span>
+                        <p className="text-gray-800">{selectedTask.submittedByName || 'Not specified'}</p>
+                      </div>
+                      <div>
                         <span className="text-sm font-medium text-gray-600">Area</span>
                         <p className="text-gray-800">{selectedTask.area || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Work Nature</span>
+                        <p className="text-gray-800">{selectedTask.workNature || 'Not specified'}</p>
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-600">Work Type</span>

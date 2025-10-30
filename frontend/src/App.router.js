@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import WorkTypes from './pages/WorkTypes';
+import Settings from './pages/Settings';
 import PublicSubmit from './pages/PublicSubmit';
 import PrivateRoute from './components/PrivateRoute';
 import { logout, getCurrentUser } from './services/auth';
@@ -132,6 +133,31 @@ function AppShell() {
                 <div>
                   <div className="font-medium">Work Types</div>
                   <div className="text-xs opacity-75">Categorize Work</div>
+                </div>
+              </>
+            )}
+          </NavLink>
+          <NavLink 
+            to="/settings" 
+            className={({ isActive }) => `group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+              isActive 
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25' 
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-lg'
+            }`}
+          >
+            {({ isActive }) => (
+              <>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 transition-all duration-200 ${
+                  isActive ? 'bg-white/20' : 'bg-gray-700 group-hover:bg-gray-600'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09c0-.61-.39-1.16-.99-1.51a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82A1.65 1.65 0 015 12c0-1.1.68-2.06 1.65-2.41a1.65 1.65 0 00.99-1.51V8a2 2 0 014 0v.09c0 .61.39 1.16.99 1.51A1.65 1.65 0 0012 10c1.1 0 2.06.68 2.41 1.65.36.97 1.31 1.65 2.41 1.65.86 0 1.62.5 1.99 1.24z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-medium">Settings</div>
+                  <div className="text-xs opacity-75">App configuration</div>
                 </div>
               </>
             )}
@@ -304,6 +330,32 @@ function AppShell() {
                     </>
                   )}
                 </NavLink>
+                <NavLink
+                  to="/settings"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={({ isActive }) => `group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white hover:shadow-lg'
+                  }`}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 transition-all duration-200 ${
+                        isActive ? 'bg-white/20' : 'bg-gray-700 group-hover:bg-gray-600'
+                      }`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09c0-.61-.39-1.16-.99-1.51a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82A1.65 1.65 0 015 12c0-1.1.68-2.06 1.65-2.41a1.65 1.65 0 00.99-1.51V8a2 2 0 014 0v.09c0 .61.39 1.16.99 1.51A1.65 1.65 0 0012 10c1.1 0 2.06.68 2.41 1.65.36.97 1.31 1.65 2.41 1.65.86 0 1.62.5 1.99 1.24z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium">Settings</div>
+                        <div className="text-xs opacity-75">App configuration</div>
+                      </div>
+                    </>
+                  )}
+                </NavLink>
               </nav>
 
               {/* Sticky User Profile & Logout */}
@@ -351,6 +403,7 @@ function AppShell() {
             <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
             <Route path="/worktypes" element={<PrivateRoute roles={["super_admin", "admin"]}><WorkTypes /></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute roles={["super_admin", "admin"]}><Settings /></PrivateRoute>} />
           </Routes>
         </div>
       </div>

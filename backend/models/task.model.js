@@ -24,6 +24,8 @@ const taskSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   tags: [String],
   history: [historySchema],
+  submittedByName: { type: String }, // NEW FIELD
+  workNature: { type: String, enum: ['Repair Work', 'New Work'] }, // NEW FIELD
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

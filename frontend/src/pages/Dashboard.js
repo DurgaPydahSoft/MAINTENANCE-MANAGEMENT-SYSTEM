@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { getCurrentUser } from '../services/auth';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { setPageTitle } from '../utils/pageTitle';
 
 export default function Dashboard() {
@@ -27,6 +27,17 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const navigate = useNavigate();
+
+  const goToTasksWithFilter = (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.set('status', filters.status);
+    if (filters.workType) params.set('workType', filters.workType);
+    if (filters.search) params.set('search', filters.search);
+    if (filters.dateRange) params.set('dateRange', filters.dateRange);
+    navigate(`/tasks?${params.toString()}`);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -156,7 +167,7 @@ export default function Dashboard() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div role="button" tabIndex={0} onClick={() => goToTasksWithFilter({})} onKeyDown={(e) => e.key === 'Enter' && goToTasksWithFilter({})} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Tasks</p>
@@ -174,7 +185,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div role="button" tabIndex={0} onClick={() => goToTasksWithFilter({ status: 'Awaiting Approval' })} onKeyDown={(e) => e.key === 'Enter' && goToTasksWithFilter({ status: 'Awaiting Approval' })} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Awaiting Approval</p>
@@ -191,7 +202,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div role="button" tabIndex={0} onClick={() => goToTasksWithFilter({ status: 'In Progress' })} onKeyDown={(e) => e.key === 'Enter' && goToTasksWithFilter({ status: 'In Progress' })} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">In Progress</p>
@@ -208,7 +219,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div role="button" tabIndex={0} onClick={() => goToTasksWithFilter({ status: 'Completed' })} onKeyDown={(e) => e.key === 'Enter' && goToTasksWithFilter({ status: 'Completed' })} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Completed</p>
@@ -245,7 +256,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div role="button" tabIndex={0} onClick={() => goToTasksWithFilter({ status: 'Pending' })} onKeyDown={(e) => e.key === 'Enter' && goToTasksWithFilter({ status: 'Pending' })} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending</p>

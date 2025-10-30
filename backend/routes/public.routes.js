@@ -44,7 +44,7 @@ router.get('/worktypes', async (req, res) => {
 // Create public task submission
 router.post('/submit', uploadPublic.array('images', 20), async (req, res) => {
   try {
-    let { title, description, workType, area, materials, manpower, estimatedTime, tags } = req.body;
+    let { title, description, workType, area, materials, manpower, estimatedTime, tags, submittedByName, workNature } = req.body;
     
     // Handle arrays possibly sent as JSON strings via multipart/form-data
     if (typeof materials === 'string') {
@@ -68,6 +68,8 @@ router.post('/submit', uploadPublic.array('images', 20), async (req, res) => {
       tags,
       images,
       createdBy: null, // Anonymous submission
+      submittedByName: submittedByName || undefined,
+      workNature: workNature || undefined,
       history: [{ status: 'Awaiting Approval', changedBy: null, remarks: 'Public submission' }]
     });
     
