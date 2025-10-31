@@ -33,6 +33,10 @@ function Tasks() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusForm, setStatusForm] = useState({ status: '', remarks: '', actualTime: '', assignedTo: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [taskInfoExpanded, setTaskInfoExpanded] = useState(false);
+  const [showImagePopup, setShowImagePopup] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -263,6 +267,14 @@ function Tasks() {
   const handleShowDetails = (task) => {
     setSelectedTask(task);
     setShowDetails(true);
+  };
+
+  // Handle image click for popup
+  const handleImageClick = (image, e) => {
+    e.stopPropagation();
+    console.log('Image clicked:', image); // Debug log
+    setSelectedImage(image);
+    setShowImagePopup(true);
   };
 
   // Show status update modal
@@ -500,7 +512,7 @@ function Tasks() {
               {filteredTasks
                 .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
                 .map((task) => (
-                  <div key={task._id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onClick={() => handleShowDetails(task)}>
+                  <div key={task._id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full" onClick={() => handleShowDetails(task)}>
                     {/* Card Header */}
                     <div className="p-6 pb-4">
                       <div className="flex items-start justify-between mb-3">
@@ -517,19 +529,16 @@ function Tasks() {
                           {task.status}
                         </span>
                       </div>
-                      
-                      {/* Image Preview */}
-                      {Array.isArray(task.images) && task.images.length > 0 && (
-                        <div className="mb-4">
-                          <img src={task.images[0]} alt="thumbnail" className="w-full h-40 object-cover rounded-xl" />
-                        </div>
-                      )}
-                      
+
+
+
                       {/* Description */}
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{task.description}</p>
-                      
+                      <p className="text-sm text-gray-600 mb-4 truncate" title={task.description}>
+                        {task.description}
+                      </p>
+
                       {/* Task Details */}
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-sm min-h-[80px]">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -543,23 +552,54 @@ function Tasks() {
                           </svg>
                           <span className="text-gray-600">{typeof task.workType === 'object' ? task.workType?.name : task.workType}</span>
                         </div>
-                        {task.estimatedTime && (
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-gray-600">{task.estimatedTime}</span>
-                          </div>
-                        )}
-                        {task.assignedTo && (
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span className="text-gray-600">{task.assignedTo}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 min-h-[20px]">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-gray-600">{task.estimatedTime || 'Not specified'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 min-h-[20px]">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="text-gray-600">{task.assignedTo || 'Not assigned'}</span>
+                        </div>
                       </div>
+
+                      {/* Images Preview */}
+                      {Array.isArray(task.images) && task.images.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-xs text-gray-500">{task.images.length} image{task.images.length > 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            {task.images.slice(0, 3).map((image, idx) => (
+                              <div key={idx} className="relative group">
+                                <img
+                                  src={image}
+                                  alt={`task-img-${idx}`}
+                                  className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 transition-all duration-200"
+                                  onClick={(e) => handleImageClick(image, e)}
+                                />
+                                {task.images.length > 3 && idx === 2 && (
+                                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded flex items-center justify-center">
+                                    <span className="text-white text-xs font-medium">+{task.images.length - 3}</span>
+                                  </div>
+                                )}
+                                {/* Zoom icon overlay */}
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded flex items-center justify-center">
+                                  <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                  </svg>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Card Actions */}
@@ -568,19 +608,19 @@ function Tasks() {
                         {task.status === 'Awaiting Approval' ? (
                           <>
                             <button
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors text-xs font-medium flex items-center gap-1 shadow-sm"
                               onClick={() => handleApprove(task._id)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                               Approve
                             </button>
                             <button
-                              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs font-medium flex items-center gap-1 shadow-sm"
                               onClick={() => handleDelete(task._id)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                               Delete
@@ -589,28 +629,28 @@ function Tasks() {
                         ) : (
                           <>
                             <button
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors text-xs font-medium flex items-center gap-1 shadow-sm"
                               onClick={() => handleShowStatusModal(task)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              Update Status
+                              Update
                             </button>
                             <button
-                              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors text-xs font-medium flex items-center gap-1 shadow-sm"
                               onClick={() => handleEdit(task)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                               Edit
                             </button>
                             <button
-                              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs font-medium flex items-center gap-1 shadow-sm"
                               onClick={() => handleDelete(task._id)}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                               Delete
@@ -644,16 +684,43 @@ function Tasks() {
                     {filteredTasks
                       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
                       .map((task) => (
-                        <tr key={task._id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={task._id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleShowDetails(task)}>
                           <td className="px-6 py-4">
-                            <div className="flex items-center space-x-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
+                              <p className="text-sm text-gray-500">
+                                {task.description && task.description.length > 50
+                                  ? `${task.description.substring(0, 50)}......`
+                                  : task.description}
+                              </p>
+                              {/* Images Preview in Table */}
                               {Array.isArray(task.images) && task.images.length > 0 && (
-                                <img src={task.images[0]} alt="thumbnail" className="w-12 h-12 object-cover rounded-lg" />
+                                <div className="mt-2">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span className="text-xs text-gray-500">{task.images.length} image{task.images.length > 1 ? 's' : ''}</span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    {task.images.slice(0, 3).map((image, idx) => (
+                                      <div key={idx} className="relative">
+                                        <img
+                                          src={image}
+                                          alt={`task-img-${idx}`}
+                                          className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 transition-all duration-200"
+                                          onClick={(e) => handleImageClick(image, e)}
+                                        />
+                                        {task.images.length > 3 && idx === 2 && (
+                                          <div className="absolute inset-0 bg-black bg-opacity-60 rounded flex items-center justify-center">
+                                            <span className="text-white text-xs font-medium">+{task.images.length - 3}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               )}
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
-                                <p className="text-sm text-gray-500 truncate">{task.description}</p>
-                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -674,18 +741,8 @@ function Tasks() {
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {new Date(task.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center space-x-2">
-                              <button
-                                className="text-blue-600 hover:text-blue-800 p-1"
-                                onClick={() => handleShowDetails(task)}
-                                title="View Details"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                              </button>
                               {task.status === 'Awaiting Approval' ? (
                                 <>
                                   <button
@@ -973,7 +1030,39 @@ function Tasks() {
                       </svg>
                       Description
                     </h4>
-                    <p className="text-gray-700 leading-relaxed">{selectedTask.description}</p>
+                    <div className="text-gray-700 leading-relaxed max-w-full overflow-hidden">
+                      {descriptionExpanded ? (
+                        <>
+                          <p className="whitespace-pre-wrap break-words">{selectedTask.description}</p>
+                          <button
+                            onClick={() => setDescriptionExpanded(false)}
+                            className="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                            Read less
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="truncate" title={selectedTask.description}>
+                            {selectedTask.description || 'No description provided'}
+                          </p>
+                          {selectedTask.description && (
+                            <button
+                              onClick={() => setDescriptionExpanded(true)}
+                              className="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                              Read more
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Images */}
@@ -988,17 +1077,13 @@ function Tasks() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {selectedTask.images.map((image, idx) => (
                           <div key={idx} className="relative group">
-                            <img 
-                              src={image} 
+                            <img
+                              src={image}
                               alt={`task-img-${idx}`}
                               className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-105"
-                              onClick={() => window.open(image, '_blank')}
+                                onClick={(e) => handleImageClick(image, e)}
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
-                              <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                              </svg>
-                            </div>
+                            
                           </div>
                         ))}
                       </div>
@@ -1037,7 +1122,22 @@ function Tasks() {
                 <div className="space-y-6">
                   {/* Task Info */}
                   <div className="bg-gray-50 rounded-xl p-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Task Information</h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-800">Task Information</h4>
+                      <button
+                        onClick={() => setTaskInfoExpanded(!taskInfoExpanded)}
+                        className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
+                      >
+                        <svg
+                          className={`w-5 h-5 transition-transform ${taskInfoExpanded ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
                     <div className="space-y-4">
                       <div>
                         <span className="text-sm font-medium text-gray-600">Submitted By</span>
@@ -1057,46 +1157,50 @@ function Tasks() {
                           {typeof selectedTask.workType === 'object' ? selectedTask.workType?.name : selectedTask.workType}
                         </p>
                       </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Materials</span>
-                        <p className="text-gray-800">
-                          {Array.isArray(selectedTask.materials) && selectedTask.materials.length > 0 
-                            ? selectedTask.materials.join(', ') 
-                            : 'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Manpower</span>
-                        <p className="text-gray-800">{selectedTask.manpower || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Estimated Time</span>
-                        <p className="text-gray-800">{selectedTask.estimatedTime || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Actual Time</span>
-                        <p className="text-gray-800">{selectedTask.actualTime || 'Not specified'}</p>
-                      </div>
-                      {selectedTask.assignedTo && (
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Assigned To</span>
-                          <p className="text-gray-800">{selectedTask.assignedTo}</p>
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Tags</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {Array.isArray(selectedTask.tags) && selectedTask.tags.length > 0 ? (
-                            selectedTask.tags.map((tag, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                                {tag}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-500 text-sm">None</span>
+                      {taskInfoExpanded && (
+                        <>
+                          <div>
+                            <span className="text-sm font-medium text-gray-600">Materials</span>
+                            <p className="text-gray-800">
+                              {Array.isArray(selectedTask.materials) && selectedTask.materials.length > 0
+                                ? selectedTask.materials.join(', ')
+                                : 'Not specified'}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-600">Manpower</span>
+                            <p className="text-gray-800">{selectedTask.manpower || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-600">Estimated Time</span>
+                            <p className="text-gray-800">{selectedTask.estimatedTime || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-600">Actual Time</span>
+                            <p className="text-gray-800">{selectedTask.actualTime || 'Not specified'}</p>
+                          </div>
+                          {selectedTask.assignedTo && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-600">Assigned To</span>
+                              <p className="text-gray-800">{selectedTask.assignedTo}</p>
+                            </div>
                           )}
-                        </div>
-                      </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-600">Tags</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {Array.isArray(selectedTask.tags) && selectedTask.tags.length > 0 ? (
+                                selectedTask.tags.map((tag, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                    {tag}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-500 text-sm">None</span>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1275,6 +1379,36 @@ function Tasks() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Popup Modal */}
+      {showImagePopup && selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[70] p-4"
+          onClick={() => {
+            setShowImagePopup(false);
+            setSelectedImage(null);
+          }}
+        >
+          <div className="relative w-full h-full max-w-[95vw] max-h-[95vh] flex items-center justify-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowImagePopup(false);
+                setSelectedImage(null);
+              }}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 text-4xl font-light z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-opacity-70"
+            >
+              ×
+            </button>
+            <img
+              src={selectedImage}
+              alt="Enlarged task image"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         </div>
       )}

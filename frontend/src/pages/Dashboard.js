@@ -357,16 +357,17 @@ export default function Dashboard() {
             <p className="text-gray-500 text-center py-8">No recent tasks found</p>
           ) : (
             recentTasks.map((task) => (
-              <div key={task._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
+              <div key={task._id} className="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg gap-4">
+                <div className="min-w-0">
                   <h4 className="font-medium text-gray-800">{task.title}</h4>
-                  <p className="text-sm text-gray-600">{task.description}</p>
+                  <p className="text-sm text-gray-600 truncate">{task.description}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {new Date(task.createdAt).toLocaleDateString()} • 
+                    {new Date(task.createdAt).toLocaleDateString()} •
                     {typeof task.workType === 'object' ? task.workType?.name : task.workType}
                   </p>
         </div>
-                <div className="flex items-center gap-3">
+                <div></div>
+                <div className="flex items-center justify-end gap-3">
                   <span className={`px-3 py-1 text-xs font-medium rounded-full ${
                     task.status === 'Awaiting Approval' ? 'bg-yellow-100 text-yellow-700' :
                     task.status === 'Pending' ? 'bg-blue-100 text-blue-700' :
@@ -375,8 +376,8 @@ export default function Dashboard() {
                   }`}>
                     {task.status}
                   </span>
-                  <Link 
-                    to="/tasks" 
+                  <Link
+                    to="/tasks"
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
                     View →

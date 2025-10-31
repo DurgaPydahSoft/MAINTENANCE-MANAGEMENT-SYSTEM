@@ -33,6 +33,9 @@ app.use('/api/tasks', taskRoutes);
 const publicRoutes = require('./routes/public.routes');
 app.use('/api/public', publicRoutes);
 
+const adminRoutes = require('./routes/admin.routes');
+app.use('/api/admins', adminRoutes);
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to College Maintenance Management System API' });
