@@ -225,26 +225,33 @@ export default function PublicSubmit() {
       </div>
 
       {/* Progress Steps */}
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-4">
+      <div className="max-w-xl mx-auto px-6 pt-6 pb-4 relative z-0">
         <div className="flex items-center justify-between relative">
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 -z-10 rounded-full"></div>
-          <div 
-            className="absolute top-1/2 left-0 h-1 bg-blue-600 -translate-y-1/2 -z-10 rounded-full transition-all duration-500"
+          {/* Background line */}
+          <div className="absolute left-0 right-0 h-1 bg-gray-200 -z-10"></div>
+          {/* Progress line */}
+          <div
+            className="absolute left-0 right-0 h-1 bg-blue-600 -z-10 transition-all duration-500"
             style={{ width: `${((activeStep - 1) / 2) * 100}%` }}
           ></div>
-          {[1, 2, 3].map((step) => (
-            <div key={step} className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
-                step <= activeStep 
-                  ? 'bg-blue-600 text-white shadow-lg scale-110' 
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
-                {step}
+          {[1, 2, 3].map((step, index) => (
+            <React.Fragment key={step}>
+              <div className="flex flex-col items-center relative z-10">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-semibold text-xs transition-all duration-300 ${
+                  step <= activeStep
+                    ? 'bg-blue-600 text-white shadow-lg scale-140'
+                    : 'bg-gray-200 text-gray-500 scale-140'
+                }`}>
+                  {step}
+                </div>
               </div>
-              <span className="text-xs font-medium mt-2 text-gray-600">
-                {step === 1 ? 'Details' : step === 2 ? 'Resources' : 'Review'}
-              </span>
-            </div>
+              {/* Progress line between steps */}
+              {index < 2 && (
+                <div className={`flex-1 h-0.5 mx-2 transition-all duration-500 ${
+                  step < activeStep ? 'bg-blue-600' : 'bg-gray-200'
+                }`}></div>
+              )}
+            </React.Fragment>
           ))}
         </div>
       </div>
@@ -258,8 +265,8 @@ export default function PublicSubmit() {
               {/* Step 3: Images & Review */}
               <div className="space-y-6 animate-fadeIn">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Add Photos & Review</h2>
-                  <p className="text-gray-600 mt-2">Visuals help us understand better</p>
+                  <h2 className="text-xl font-bold text-gray-800">Add Photos & Review</h2>
+                  {/* <p className="text-gray-600 text-s">Visuals help us understand better</p> */}
                 </div>
 
                 <div className="space-y-4">
@@ -362,7 +369,7 @@ export default function PublicSubmit() {
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-medium transition-all duration-200 active:scale-95"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200 active:scale-95"
                   >
                     Back
                   </button>
@@ -370,19 +377,19 @@ export default function PublicSubmit() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     {submitting ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                         <span>Submitting...</span>
                       </>
                     ) : (
                       <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Submit Request</span>
+                        <span>Submit</span>
                       </>
                     )}
                   </button>
@@ -395,10 +402,10 @@ export default function PublicSubmit() {
               {/* Step 1: Basic Details */}
               {activeStep === 1 && (
                 <div className="space-y-6 animate-fadeIn">
-                  <div className="text-center mb-6">
+                  {/* <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">What needs maintenance?</h2>
                     <p className="text-gray-600 mt-2">Tell us about the issue</p>
-                  </div>
+                  </div> */}
 
                   <div className="space-y-4">
                     <div>
@@ -411,7 +418,7 @@ export default function PublicSubmit() {
                         value={formData.title}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-lg"
+                        className="w-full h-3 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-m"
                         placeholder="Brief description of the issue"
                       />
                     </div>
@@ -426,7 +433,7 @@ export default function PublicSubmit() {
                         onChange={handleChange}
                         required
                         rows="4"
-                        className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 resize-none"
+                        className="w-full h-90 px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 resize-none text-m"
                         placeholder="Describe the issue in detail..."
                       />
                     </div>
@@ -442,7 +449,7 @@ export default function PublicSubmit() {
                           value={formData.submittedByName}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                          className="w-full h-4 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -472,8 +479,8 @@ export default function PublicSubmit() {
               {activeStep === 2 && (
                 <div className="space-y-6 animate-fadeIn">
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Location & Resources</h2>
-                    <p className="text-gray-600 mt-2">Where and what's needed</p>
+                    <h2 className="text-xl font-bold text-gray-800">Location & Resources</h2>
+                    {/* <p className="text-gray-600 mt-2">Where and what's needed</p> */}
                   </div>
 
                   <div className="space-y-4">
@@ -487,7 +494,7 @@ export default function PublicSubmit() {
                           name="area"
                           value={formData.area}
                           onChange={handleChange}
-                          className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                          className="w-full h-9 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                           placeholder="Building, room, or area"
                         />
                       </div>
@@ -501,7 +508,7 @@ export default function PublicSubmit() {
                           value={formData.workType}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                          className="w-full h-10 px-4 py-0 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                         >
                           <option value="">Select work category</option>
                           {workTypes.map((wt) => (
@@ -522,7 +529,7 @@ export default function PublicSubmit() {
                           value={formData.materials}
                           onChange={handleChange}
                           placeholder="e.g., cement, bricks, pipes"
-                          className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                          className="w-full h-10 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                         />
                       </div>
 
@@ -536,7 +543,7 @@ export default function PublicSubmit() {
                           value={formData.manpower}
                           onChange={handleChange}
                           placeholder="e.g., 2 electricians, 1 plumber"
-                          className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                          className="w-full h-10 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                         />
                       </div>
                     </div>
@@ -551,7 +558,7 @@ export default function PublicSubmit() {
                         value={formData.estimatedTime}
                         onChange={handleChange}
                         placeholder="e.g., 2 hours, 1 day, 3 days"
-                        className="w-full px-4 py-4 border-0 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                        className="w-full h-10 px-4 py-4 border-0 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                       />
                     </div>
                   </div>
@@ -572,7 +579,8 @@ export default function PublicSubmit() {
               )}
 
               {/* Navigation Buttons for Steps 1 & 2 */}
-              <div className="flex justify-between pt-6 mt-6 border-t border-gray-200">
+              <div className={`flex ${activeStep > 1 ? 'justify-between' : 'justify-end'} pt-6 mt-6 border-t border-gray-200`}>
+
                 {activeStep > 1 ? (
                   <button
                     type="button"
@@ -581,19 +589,12 @@ export default function PublicSubmit() {
                   >
                     Back
                   </button>
-                ) : (
-                  <Link
-                    to="/"
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-medium transition-all duration-200 active:scale-95"
-                  >
-                    Cancel
-                  </Link>
-                )}
+                ) : null}
 
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+                  className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
                 >
                   Continue
                 </button>
